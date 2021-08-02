@@ -20,18 +20,18 @@ I'm thinking: what is something will "sit here and won't blink" 24/7 and write '
 
 ## INFO: ##
 
-1. HEX to human and be found on (planespotters.net)[https://www.planespotters.net/search?q=06A10C], they also have API, I would like to use it in future
+1. HEX to human and be found on [planespotters.net](https://www.planespotters.net/search?q=06A10C), they also have API, I would like to use it in future
 2. Script use pooling to mySQL 'cause it can reconnect by itself (hope so)
 3. Script works "here and now", so it cat lost some values and this is "ok" for my case
 4. Terms:
 4.1. SQW stands for "squawk" which you may know as "transponder": "channel" of plane's radio
-4.2. FLIGHT stands for "call sign", and (this is why)[https://www.flightradar24.com/blog/clearing-up-call-sign-confusion/]
+4.2. FLIGHT stands for "call sign", and [this is why](https://www.flightradar24.com/blog/clearing-up-call-sign-confusion/)
 
 ## HARDWARE UNDER THE BUILD: ##
 
 1. Raspberry Pi 2
 2. Some suitable SDR (I really cannot remember which one)
-3. An antenna done in some way like (I've made a "pepsy can")[https://discussions.flightaware.com/t/three-easy-diy-antennas-for-beginners/16348] 
+3. An antenna done in some way like [I've made a "pepsy can"](https://discussions.flightaware.com/t/three-easy-diy-antennas-for-beginners/16348)
 4. Poweed USB-hub
 5. Home server (mine: old laptop under debian)
 6. Network with internet access, common for FR24 and Server (or they can access in some way to each other)
