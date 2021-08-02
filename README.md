@@ -1,4 +1,4 @@
-##THE IDEA##
+## THE IDEA ##
 
 FR24 gives pretty nice service (on "business" level) if you build your own point for 'em. It is simple and easy, any can do it with the instruction from FR24. Hardware for this build is under $100, and it uses just about 20W/h, so this won't make you broke. 
 
@@ -11,14 +11,14 @@ As far as I looked for small planes, which aren't present in "playback" on FR24,
 I'm thinking: what is something will "sit here and won't blink" 24/7 and write 'em all down to the list for me, so I'll able to check records in any time? This is the script.
 
 
-##BASED ON:##
+## BASED ON: ##
 
 1. https://gist.github.com/msakai/3318776 -- this helps me to understand the sentence of the JSON pulled from FR24 
 2. https://github.com/exxamalte/python-flightradar-client -- this opens me an idea to start
 
 	I would like to thans 'em for the ideas. Thank you guys!
 
-##INFO:##
+## INFO: ##
 
 1. HEX to human and be found here: https://www.planespotters.net/search?q=06A10C
 2. Script use pooling to mySQL 'cause it can reconnect by itself (hope so)
@@ -27,7 +27,7 @@ I'm thinking: what is something will "sit here and won't blink" 24/7 and write '
 4.1. SQW stands for "squawk" which you may know as "transponder": "channel" of plane's radio
 4.2. FLIGHT stands for "call sign": https://www.flightradar24.com/blog/clearing-up-call-sign-confusion/
 
-##HARDWARE UNDER THE BUILD:##
+## HARDWARE UNDER THE BUILD: ##
 
 1. Raspberry Pi 2
 2. Some suitable SDR (I really cannot remember which one)
@@ -36,12 +36,12 @@ I'm thinking: what is something will "sit here and won't blink" 24/7 and write '
 5. Home server (mine: old laptop under debian)
 6. Network with internet access, common for FR24 and Server (or they can access in some way to each other)
 
-##PRECONDITIONS:##
+## PRECONDITIONS: ##
 1. You have done with the installation of own FlightRadar point and it is fully functional
 2. You know IP address of your install. In my case it is 192.168.0.40
 3. You have a dedicated server for script (python3 + mySQL)
 
-##EXAMPLES AND HOWTOS:##
+## EXAMPLES AND HOWTOS: ##
 
 THIS is how I found the way to get JSON with currently presented crafts. It was interrested to understand that 'time=EPOCH' is used just to reject browser' caching algorithms. But it looks like you should use EPOCH with millis to make URL functional. Other headers are from my Safari and just are for "anycase".
 
@@ -104,7 +104,7 @@ THIS is a real flow from FR24 software, note how values added through time for e
 
 NB: nobody tells you all data will be added during the contact, nobody tells you values will be correct
 
-##ALGORITHM:##
+## ALGORITHM: ##
 1. Get JSON from FR24 point, if not - do nothing (on error wait a bit more)
 2. For each record (which is single aircraft on radar) start work (see next)
 3. If this is new record - just store it in list of current crafts
