@@ -23,9 +23,10 @@ I'm thinking: what is something will "sit here and won't blink" 24/7 and write '
 1. HEX to human and be found on [planespotters.net](https://www.planespotters.net/search?q=06A10C), they also have API, I would like to use it in future
 2. Script use pooling to mySQL 'cause it can reconnect by itself (hope so)
 3. Script works "here and now", so it cat lost some values and this is "ok" for my case
-4. Terms:
-4.1. SQW stands for "squawk" which you may know as "transponder": "channel" of plane's radio
-4.2. FLIGHT stands for "call sign", and [this is why](https://www.flightradar24.com/blog/clearing-up-call-sign-confusion/)
+
+Terms:
+* SQW stands for "squawk" which you may know as "transponder": "channel" of plane's radio
+* FLIGHT stands for "call sign", and [this is why](https://www.flightradar24.com/blog/clearing-up-call-sign-confusion/)
 
 ## HARDWARE UNDER THE BUILD: ##
 
