@@ -1,116 +1,120 @@
-## THE IDEA ##
+# Build Your Own Aircraft Radar
 
-FR24 gives pretty nice service (on "business" level) if you build your own point for 'em. It is simple and easy, any can do it with the instruction from FR24. Hardware for this build is under $100, and it uses just about 20W/h, so this won't make you broke. 
+This guide describes the process of creating your own ADS-B data reception station for aircraft tracking, from hardware selection to software integration.
 
-	FR24 have its "gray points":
-	1. They won't tell you to prepare your antenna (one with your SDR isn't good enough)
-	2. They won't give you a history of planes traveled through "your controlled space" (but you can see "playback" on FR24 site)
+## 1. Why do this?
 
-As far as I looked for small planes, which aren't present in "playback" on FR24, I need to see and watch the web-console of my FR24 point to see hex-id,filter 'em by myself and don't blink. And so I did it to find 4C0DA1 (Piper PA-38-112 Tomahawk) but "sit here and don't blink" is bad varian for me as I have work and need to sleep a bit each day.
+Deploying your own radar solves several tasks:
+* **Community support:** Projects collecting flight data critically need a dense network of receivers for verification and confidence in their data. There are fewer enthusiasts in this field than it might seem.
+* **Engineering experience:** This is a great way to refresh your knowledge of radio receivers and signal reception technologies—an essential foundation that young engineers often ignore.
+* **FlightRadar24 bonuses:** Program participants receive *Contributor* status. This unlocks access to weather data (which is hard to find elsewhere), real-time tracking, interesting UI settings, and other premium features, which is especially useful when picking friends up at the airport (or if you are a taxi driver).
 
-I'm thinking: what is something will "sit here and won't blink" 24/7 and write 'em all down to the list for me, so I'll able to check records in any time? This is the script.
+## 2. Hardware
+
+To build the radar, you will need the following equipment:
+
+* **Compute module:** Raspberry Pi 2, 3, 4, or 5 (FlightRadar recommends at least version 4, but the system works successfully on the Pi 2). A suitably sized SD card is also required.
+* **Receiver:** Any SDR USB module (e.g., RTL2838 DVB-T).
+* **1090 MHz Antenna:**
+    * *Ready-made solution:* You can buy an antenna specifically designed for this frequency (available on Aliexpress or Temu).
+    * *DIY solution:* Building it yourself is a much more fun and interesting process. Examples of simple DIY antennas can be found [here (e.g., "pepsy can")](https://discussions.flightaware.com/t/three-easy-diy-antennas-for-beginners/16348).
+
+### 💡 Assembly and Placement Recommendations:
+* **Visibility:** Carefully choose the location for your antenna. It is crucial to review the [official FlightRadar placement recommendations](https://www.flightradar24.com/files/positioning_mode-s_antenna.pdf) beforehand to maximize your antenna's "field of view".
+* **Cable:** The shorter the wires from the antenna to the SDR, the better (ideally, the connection should be "one-to-one").
+* **Filtering and amplification:** If you are using an amplifier, be sure to install it with a bandpass filter. The personally recommended chain order is: `Antenna` ➔ `Amplifier` ➔ `Filter` ➔ `Receiver`.
+
+## 3. Software Installation and Configuration
+
+### System Preparation
+1.  **OS Identification:** Verified system is Raspbian 13 (Trixie) on Raspberry Pi; it is recommended to use Raspberry Pi OS Lite.
+2.  **USB Verification:** Confirm that your RTL2838 DVB-T dongle is connected (e.g. ID `0bda:2838`).
+
+### Clean Installation (`readsb` and `tar1090`)
+Update your package lists and run the automated installation script:
+
+```bash
+sudo apt-get update
+sudo bash -c "$(wget -O - https://raw.githubusercontent.com/wiedehopf/adsb-scripts/master/readsb-install.sh)"
+
+```
+
+### Validation
+
+Ensure the system is receiving data correctly:
+
+* Verify that the `readsb` service is running.
+* Verify live data reception using: `sudo TERM=linux viewadsb`.
+* Verify the presence of JSON output at: `/run/readsb/aircraft.json`.
+
+### Installing the FlightRadar24 Client
+
+Run the FR24 installation script:
+
+```bash
+sudo bash -c "$(wget -O - https://repo-feed.flightradar24.com/install_fr24_feed.sh)"
+
+```
+
+In the FR24 configuration file (`/etc/fr24feed.ini`), you must specify the following two lines to properly integrate with `readsb`:
+
+```ini
+receiver="beast-tcp"
+host="127.0.0.1:30005"
+
+```
+
+## 4. Web Interface and Local API
+
+### Browser Viewing (UI)
+
+After a successful installation, you can watch the aircraft on an interactive real-time map directly through your server. To access the web interface, open your browser and navigate to:
+`http://<IP_ADDRESS>/tar1090/` (for example, `http://192.168.42.48/tar1090/`)
+
+### Programmatic Access (API)
+
+If you need to retrieve the raw data programmatically, use the following local network endpoints:
+
+* **Primary Path:** `http://<IP_ADDRESS>/tar1090/data/aircraft.json`
+* **Alternative Path:** `http://<IP_ADDRESS>:8504/data/aircraft.json`
+
+### Terminology
+
+* **SQW (Squawk):** Transponder code (the airplane's radio "channel").
+* **FLIGHT:** Callsign or flight number ([read more about callsigns here](https://www.flightradar24.com/blog/clearing-up-call-sign-confusion/)).
+
+### Data Schema (aircraft.json)
+
+Each entry in the `aircraft` array from `tar1090` contains the following data:
+
+| Field | Description | Example |
+| --- | --- | --- |
+| **hex** | Unique ICAO 24-bit address (hexadecimal) | `4ca808` |
+| **flight** | Callsign / Flight number (ICAO airline code + number) | `RYR18TX` |
+| **alt_baro** | Barometric altitude (feet) | `36000` |
+| **gs** | Ground speed (knots) | `422.3` |
+| **track** | True track / Course (degrees) | `272.04` |
+| **lat / lon** | GPS Coordinates | `44.42, 19.49` |
+| **squawk** | Transponder squawk code | `4137` |
+| **rssi** | Signal strength (dBFS). Closer to 0 is stronger | `-29.3` |
+| **seen** | Seconds since the last message was received | `9.8` |
+| **messages** | Total messages received from this aircraft | `1886` |
+| **nav_altitude_mcp** | Target altitude set on Autopilot/MCP | `36000` |
 
 
-## BASED ON: ##
+## 5. Additional Data Sources (APIs)
 
-1. https://gist.github.com/msakai/3318776 -- this helps me to understand the sentence of the JSON pulled from FR24 
-2. https://github.com/exxamalte/python-flightradar-client -- this opens me an idea to start
+To enrich the aircraft information, you can use external services:
 
-	I would like to thans 'em for the ideas. Thank you guys!
+1. **[OpenSky Network](https://opensky-network.org/data/datasets#d5):** Offers an excellent dataset, and their addons database is especially useful.
+2. **[AirPortData](https://www.airport-data.com/api/doc.php):** Offers a free but incomplete aircraft database. It provides small preview images linking to full-sized, high-quality photos on their service.
+3. **[ADS-B Exchange](https://rapidapi.com/adsbx/api/adsbexchange-com1/pricing):** A paid database. Despite your participation in data collection, getting free API access from them is difficult (unless you reverse-engineer their internal map API).
+4. **[Planespotters.net](https://www.planespotters.net/search?q=06A10C):** Allows converting HEX to a human-readable format. The service has its own API for potential integrations.
 
-## INFO: ##
+---
 
-1. HEX to human and be found on [planespotters.net](https://www.planespotters.net/search?q=06A10C), they also have API, I would like to use it in future
-2. Script use pooling to mySQL 'cause it can reconnect by itself (hope so)
-3. Script works "here and now", so it cat lost some values and this is "ok" for my case
+## 6. Further Reading
 
-Terms:
-* SQW stands for "squawk" which you may know as "transponder": "channel" of plane's radio
-* FLIGHT stands for "call sign", and [this is why](https://www.flightradar24.com/blog/clearing-up-call-sign-confusion/)
-
-## HARDWARE UNDER THE BUILD: ##
-
-1. Raspberry Pi 2
-2. Some suitable SDR (I really cannot remember which one)
-3. An antenna done in some way like [I've made a "pepsy can"](https://discussions.flightaware.com/t/three-easy-diy-antennas-for-beginners/16348)
-4. Poweed USB-hub
-5. Home server (mine: old laptop under debian)
-6. Network with internet access, common for FR24 and Server (or they can access in some way to each other)
-
-## PRECONDITIONS: ##
-1. You have done with the installation of own FlightRadar point and it is fully functional
-2. You know IP address of your install. In my case it is 192.168.0.40
-3. You have a dedicated server for script (python3 + mySQL)
-
-## EXAMPLES AND HOWTOS: ##
-
-THIS is how I found the way to get JSON with currently presented crafts. It was interrested to understand that 'time=EPOCH' is used just to reject browser' caching algorithms. But it looks like you should use EPOCH with millis to make URL functional. Other headers are from my Safari and just are for "anycase".
-
-Please, change IP address of FR24 point not only in URL, but in headers
-
-	curl 'http://192.168.0.40:8754/flights.json?time=1627592900630' 
-	-X 'GET' 
-	-H 'Accept: application/json, text/javascript, */*; q=01' 
-	-H 'Accept-Language: en-gb' 
-	-H 'Host: 192.168.0.40:8754' 
-	-H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Safari/605.1.15' 
-	-H 'Referer: http://192.168.0.40:8754/tracked.html' 
-	-H 'Accept-Encoding: gzip, deflate' 
-	-H 'Connection: keep-alive' 
-	-H 'X-Requested-With: XMLHttpRequest'
-
-
-THIS is the settings for mySQL database and user, please, change password for something. NB: localhost is for security. You also can use any database on your server, but change settings in connection in script. 
-
-	Server version: 8.0.25 MySQL Community Server - GPL
-
-	mysql> CREATE USER 'fr24'@'localhost' IDENTIFIED BY 'password';
-	Query OK, 0 rows affected (0,06 sec)
-
-	mysql> CREATE DATABASE fr24;
-	Query OK, 1 row affected (0,02 sec)
-
-	mysql> GRANT ALL PRIVILEGES ON fr24 . * TO 'fr24'@'localhost';
-	Query OK, 0 rows affected (0,02 sec)
-
-	mysql> FLUSH PRIVILEGES;
-	Query OK, 0 rows affected (0,01 sec)
-
-THIS is a single table of the database to store all the values:
-
-	CREATE TABLE flights (
-	hex_id VARCHAR(8) DEFAULT '',
-	flight VARCHAR(8) DEFAULT '',
-	squawk VARCHAR(8) DEFAULT '',
-	checkout_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-	lat DECIMAL(7,4),
-	lon DECIMAL(7,4),
-	alt DECIMAL(9,2),
-	speed DECIMAL(9,2),
-	vspeed DECIMAL(9,2),
-	course INT
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
-
-
-THIS is a real flow from FR24 software, note how values added through time for every flight
-
-	['451E8C', 0.0, 0.0, 306, 37975, 430, '2265', 0, '', '', 1627792767, '', '', '', 0, 64, '']
-	['4BCE03', 0.0, 0.0, 320, 0, 441, '0000', 0, '', '', 1627792862, '', '', '', 0, 0, '']
-	['4BCE03', 45.1525, 19.8544, 320, 38000, 438, '3256', 0, '', '', 1627792902, '', '', '', 0, 0, 'SXS6Z']
-	['3C66B0', 0.0, 0.0, 0, 36000, 0, '0000', 0, '', '', 1627792935, '', '', '', 0, 0, '']
-	['4BCE03', 45.1525, 19.8544, 320, 38000, 438, '3256', 0, '', '', 1627792902, '', '', '', 0, 0, 'SXS6Z']
-	['3C66B0', 0.0, 0.0, 309, 36000, 430, '2270', 0, '', '', 1627792970, '', '', '', 0, 64, '']
-	['4BCE03', 45.1525, 19.8544, 320, 38000, 438, '3256', 0, '', '', 1627792902, '', '', '', 0, 0, 'SXS6Z']
-	['3C66B0', 0.0, 0.0, 309, 36000, 432, '2270', 0, '', '', 1627792988, '', '', '', 0, -64, '']
-
-NB: nobody tells you all data will be added during the contact, nobody tells you values will be correct
-
-## ALGORITHM: ##
-1. Get JSON from FR24 point, if not - do nothing (on error wait a bit more)
-2. For each record (which is single aircraft on radar) start work (see next)
-3. If this is new record - just store it in list of current crafts
-4. If this plane were seen, check is here more concrete values, if yes - put 'em to record in current crafts list
-5. When list of planes from radar is over, check if here are planes in current list but not in last received JSON
-6. If here is/are ones, pop in out from current list and move to seen list
-
-* here is a daemon thread who constantly looks to "seen list" and pop rows from it out to store in database
+* [Hardware integration (Ian Renton)](https://ianrenton.com/hardware/planesailing/)
+* [AIS receivers and related technologies (Sarcnet)](https://www.sarcnet.org/ais-receiver.html)
+* [ADS-B Exchange API Documentation and Pricing (RapidAPI)](https://rapidapi.com/adsbx/api/adsbexchange-com1/pricing)
