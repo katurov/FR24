@@ -8,14 +8,14 @@ The system consists of two Raspberry Pi receivers covering different sides of th
 - **IP Address:** `192.168.42.48`
 - **Hardware:** Raspberry Pi (aarch64, Debian 13)
 - **Role:** Master Collector (aggregates data from Radar #2 and its own antenna)
-- **FlightRadar24 ID:** `T-LYBT27` (Key: `b736a36631f65443`)
+- **FlightRadar24 ID:** `T-LYBT27`
 - **Web Interface:** http://192.168.42.48/tar1090
 
 ### Radar #2 (Secondary Node)
 - **IP Address:** `192.168.42.50` (via WiFi TP-LINK TL-WN725N)
 - **Hardware:** Raspberry Pi (armv7l, Raspbian 13)
 - **Role:** Feeds local data to Radar #1 and FR24
-- **FlightRadar24 ID:** `T-LYBT26` (Key: `10a806a686d3fba0`)
+- **FlightRadar24 ID:** `T-LYBT26`
 - **Web Interface:** http://192.168.42.50/tar1090
 
 ---
